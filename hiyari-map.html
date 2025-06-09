@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ヒヤリハット統合マップ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
       font-family: "Noto Sans JP", sans-serif;
@@ -23,52 +24,6 @@
       border-radius: 12px;
       border: 2px solid #e8d9b6;
     }
-    button, select, textarea, input {
-      width: 100%;
-      font-size: 1.1em;
-      margin-bottom: 10px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #c9b79c;
-      background-color: #fffaf2;
-    }
-    button {
-      background-color: #a4c49a;
-      color: #fff;
-      font-weight: bold;
-      border: none;
-    }
-    button:hover {
-      background-color: #91b087;
-    }
-
-    .filter-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .filter-group label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px;
-      background-color: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1em;
-      color: #5c4438;
-      white-space: nowrap;
-    }
-
-    .filter-group input[type="checkbox"] {
-      width: 1em;
-      height: 1em;
-      transform: scale(0.9);
-      accent-color: #669966;
-    }
-
     .area-buttons {
       display: flex;
       flex-wrap: wrap;
@@ -80,124 +35,80 @@
       font-size: 0.95em;
       background-color: #e8d9b6;
       color: #5c4438;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
     }
     .area-buttons button:hover {
       background-color: #d9c89a;
+    }
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .search-box button {
+      background-color: #a4c49a;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
     }
   </style>
 </head>
 <body>
   <h1>ヒヤリハット投稿マップ</h1>
 
+  <!-- 地域ジャンプボタン -->
   <div class="area-buttons">
     <button onclick="jumpTo(35.545495, 134.820144)">旧豊岡市</button>
-    <button onclick="jumpTo(35.625621, 134.822757)">城崎</button>
-    <button onclick="jumpTo(35.648885, 134.733141)">竹野</button>
-    <button onclick="jumpTo(35.575210, 134.798122)">日高</button>
-    <button onclick="jumpTo(35.506269, 134.873964)">出石</button>
-    <button onclick="jumpTo(35.447947, 134.960010)">但東</button>
+    <button onclick="jumpTo(35.626825, 134.813262)">城崎</button>
+    <button onclick="jumpTo(35.648858, 134.733097)">竹野</button>
+    <button onclick="jumpTo(35.575184, 134.798100)">日高</button>
+    <button onclick="jumpTo(35.506292, 134.873938)">出石</button>
+    <button onclick="jumpTo(35.447962, 134.959991)">但東</button>
   </div>
 
-  <div class="filter-group">
-    <label><input type="checkbox" value="自動車走行時" checked onchange="updateMarkers()">自動車</label>
-    <label><input type="checkbox" value="歩行時" checked onchange="updateMarkers()">歩行</label>
-    <label><input type="checkbox" value="自転車運転時" checked onchange="updateMarkers()">自転車</label>
+  <!-- 住所入力でジャンプ -->
+  <div class="search-box">
+    <input type="text" id="addressInput" placeholder="例：豊岡市役所 など">
+    <button onclick="searchAddress()">住所で移動</button>
   </div>
 
+  <!-- 地図本体 -->
   <div id="map"></div>
 
-  <label>目線</label>
-  <select id="perspective">
-    <option value="自動車走行時">自動車走行時</option>
-    <option value="歩行時">歩行時</option>
-    <option value="自転車運転時">自転車運転時</option>
-  </select>
-
-  <label>危ない内容</label>
-  <textarea id="comment" rows="3" placeholder="例：見通しが悪くて危険"></textarea>
-
-  <button onclick="submitForm()">送信してマップに追加</button>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse";
-    const entryIDs = {
-      lat: "entry.1834239742",
-      lng: "entry.2074381954",
-      perspective: "entry.1383826722",
-      comment: "entry.547473165"
-    };
-
-    let tempMarker = null;
-    let allMarkers = [];
-
-    map.on('click', function(e) {
-      const { lat, lng } = e.latlng;
-      if (tempMarker) map.removeLayer(tempMarker);
-      tempMarker = L.marker([lat, lng]).addTo(map);
-      tempMarker.lat = lat;
-      tempMarker.lng = lng;
-    });
-
-    function submitForm() {
-      if (!tempMarker) {
-        alert("地図をタップして場所を選んでください");
-        return;
-      }
-
-      const perspective = document.getElementById("perspective").value;
-      const comment = document.getElementById("comment").value.trim();
-      if (!comment) {
-        alert("内容を入力してください");
-        return;
-      }
-
-      const lat = tempMarker.lat;
-      const lng = tempMarker.lng;
-
-      const formData = new FormData();
-      formData.append(entryIDs.lat, lat);
-      formData.append(entryIDs.lng, lng);
-      formData.append(entryIDs.perspective, perspective);
-      formData.append(entryIDs.comment, comment);
-
-      fetch(formURL, {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      }).then(() => {
-        const m = L.marker([lat, lng]).addTo(map);
-        m.bindPopup(`<b>${perspective}</b><br>${comment}`);
-        m.perspective = perspective;
-        allMarkers.push(m);
-        updateMarkers();
-
-        document.getElementById("comment").value = "";
-        map.removeLayer(tempMarker);
-        tempMarker = null;
-
-        alert("ありがとうございました！投稿が完了しました。");
-      });
-    }
-
-    function updateMarkers() {
-      const checked = Array.from(document.querySelectorAll(".filter-group input:checked")).map(i => i.value);
-      allMarkers.forEach(m => {
-        if (checked.includes(m.perspective)) {
-          m.addTo(map);
-        } else {
-          map.removeLayer(m);
-        }
-      });
-    }
-
     function jumpTo(lat, lng) {
-      map.setView([lat, lng], 15);
+      map.setView([lat, lng], 16);
+    }
+
+    function searchAddress() {
+      const query = document.getElementById("addressInput").value;
+      if (!query) return alert("住所を入力してください");
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const result = data[0];
+            map.setView([result.lat, result.lon], 16);
+          } else {
+            alert("住所が見つかりませんでした");
+          }
+        })
+        .catch(() => alert("検索中にエラーが発生しました"));
     }
   </script>
 </body>

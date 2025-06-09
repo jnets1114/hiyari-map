@@ -138,6 +138,13 @@
 
   <div id="map"></div>
 
+  <!-- 地図サイズ初期化 -->
+  <script>
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 300);
+  </script>
+
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

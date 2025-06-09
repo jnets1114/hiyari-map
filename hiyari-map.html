@@ -101,6 +101,41 @@
     <label><input type="checkbox" class="genre-filter" value="自転車運転時" checked> 🚲</label>
   </div>
 
+  <form action="https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse" method="POST" target="hidden_iframe" onsubmit="submitForm()">
+    <div class="form-group">
+      <label>ジャンル：</label>
+      <select name="entry.123456789" id="genre">
+        <option value="自動車走行時">🚗 自動車走行時</option>
+        <option value="歩行時">🚶 歩行時</option>
+        <option value="自転車運転時">🚲 自転車運転時</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>危険パターン（複数選択可）：</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="道がせまい"> <span>🛣️</span>道がせまい・すれ違いにくい</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="見通しが悪い"> <span>👀</span>見通しが悪い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="スピードが速い"> <span>🚓</span>車のスピードが速い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="信号や標識がない"> <span>🚦</span>信号・標識がわかりづらい／ない</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="子ども高齢者多い"> <span>👵</span>子ども・高齢者がよく通る</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="駐車車両多い"> <span>🚙</span>駐車・停車の車が多い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="飛び出しが多い"> <span>🏃‍♂️</span>飛び出しが多い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="その他"> <span>❓</span>その他</label>
+    </div>
+
+    <div class="form-group">
+      <label>気になったこと・補足したいこと（任意）：</label><br />
+      <textarea name="entry.555555555" rows="3" cols="40"></textarea>
+    </div>
+
+    <input type="hidden" name="entry.111111111" id="lat">
+    <input type="hidden" name="entry.222222222" id="lng">
+
+    <button type="submit">送信</button>
+  </form>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
+
   <div id="map"></div>
 
   <script>
@@ -165,6 +200,14 @@
       marker.bindPopup("ジャンル: " + genre);
 
       markers.push({ genre, marker });
+
+      document.getElementById("lat")?.value = lat;
+      document.getElementById("lng")?.value = lng;
+    });
+
+    function submitForm() {
+      alert("投稿が送信されました！地図を更新するにはリロードしてください。");
+    }
 
       document.getElementById("lat")?.value = lat;
       document.getElementById("lng")?.value = lng;

@@ -2,68 +2,66 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ヒヤリハット投稿マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ヒヤリハット統合マップ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #fefefe;
-      padding: 10px;
+      font-family: "Noto Sans JP", sans-serif;
+      background-color: #fdf6e3;
+      padding: 12px;
+      color: #444;
     }
     h1 {
-      font-size: 1.4em;
-      color: #333;
+      font-size: 1.6em;
+      margin-bottom: 10px;
+      color: #5c4438;
     }
     #map {
       height: 300px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      border: 2px solid #e8d9b6;
     }
-    .area-buttons, .form-section {
+    button, select, textarea, input {
+      width: 100%;
+      font-size: 1.1em;
       margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #c9b79c;
+      background-color: #fffaf2;
     }
     button {
-      margin: 2px;
-      padding: 6px 10px;
+      background-color: #a4c49a;
+      color: #fff;
+      font-weight: bold;
+      border: none;
     }
-    label {
-      display: inline-block;
-      margin: 4px;
+    button:hover {
+      background-color: #91b087;
     }
-    .checkbox-icon {
-      font-size: 1.2em;
-      margin-right: 4px;
+    .filter-group, .area-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    .form-group {
-      margin-bottom: 10px;
-    }
-    .icon-label {
+    .filter-group label {
       display: flex;
       align-items: center;
+      gap: 6px;
+      font-size: 1em;
+      color: #5c4438;
     }
-    .icon-label input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      margin-right: 6px;
+    .area-buttons button {
+      flex: 1 1 30%;
+      font-size: 0.95em;
+      background-color: #e8d9b6;
+      color: #5c4438;
     }
-    .icon-label span {
-      font-size: 1.2em;
-      margin-right: 6px;
-    }
-    @media (max-width: 600px) {
-      .icon-label {
-        font-size: 0.9em;
-      }
-    }
-    .filter-controls {
-      margin-top: 12px;
-    }
-    .region-image {
-      max-width: 100%;
-      margin-top: 10px;
-      cursor: pointer;
+    .area-buttons button:hover {
+      background-color: #d9c89a;
     }
   </style>
 </head>
@@ -72,136 +70,114 @@
 
   <div class="area-buttons">
     <button onclick="jumpTo(35.545495, 134.820144)">旧豊岡市</button>
-    <button onclick="jumpTo(35.626825, 134.813262)">城崎</button>
-    <button onclick="jumpTo(35.648858, 134.733097)">竹野</button>
-    <button onclick="jumpTo(35.575184, 134.798100)">日高</button>
-    <button onclick="jumpTo(35.506292, 134.873938)">出石</button>
-    <button onclick="jumpTo(35.447962, 134.959991)">但東</button>
+    <button onclick="jumpTo(35.625621, 134.822757)">城崎</button>
+    <button onclick="jumpTo(35.648885, 134.733141)">竹野</button>
+    <button onclick="jumpTo(35.575210, 134.798122)">日高</button>
+    <button onclick="jumpTo(35.506269, 134.873964)">出石</button>
+    <button onclick="jumpTo(35.447947, 134.960010)">但東</button>
   </div>
 
-  <div>
-    <input type="text" id="addressInput" placeholder="住所を入力" />
-    <button onclick="searchAddress()">検索</button>
+  <div class="filter-group">
+    <label><input type="checkbox" value="自動車走行時" checked onchange="updateMarkers()">自動車</label>
+    <label><input type="checkbox" value="歩行時" checked onchange="updateMarkers()">歩行</label>
+    <label><input type="checkbox" value="自転車運転時" checked onchange="updateMarkers()">自転車</label>
   </div>
 
-  <div id="map" style="height: 300px; min-height: 300px;"></div>
+  <div id="map"></div>
 
-  <div class="filter-controls">
-    表示するジャンル：
-    <label><input type="checkbox" class="genre-filter" value="自動車走行時" checked> 🚗</label>
-    <label><input type="checkbox" class="genre-filter" value="歩行時" checked> 🚶</label>
-    <label><input type="checkbox" class="genre-filter" value="自転車運転時" checked> 🚲</label>
-  </div>
+  <label>目線</label>
+  <select id="perspective">
+    <option value="自動車走行時">自動車走行時</option>
+    <option value="歩行時">歩行時</option>
+    <option value="自転車運転時">自転車運転時</option>
+  </select>
 
-  <form action="https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse" method="POST" target="hidden_iframe" onsubmit="submitForm()">
-    <div class="form-group">
-      <label>ジャンル：</label>
-      <select name="entry.123456789" id="genre">
-        <option value="自動車走行時">🚗 自動車走行時</option>
-        <option value="歩行時">🚶 歩行時</option>
-        <option value="自転車運転時">🚲 自転車運転時</option>
-      </select>
-    </div>
+  <label>危ない内容</label>
+  <textarea id="comment" rows="3" placeholder="例：見通しが悪くて危険"></textarea>
 
-    <div class="form-group">
-      <label>危険パターン（複数選択可）：</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="道がせまい"> <span>🛣️</span>道がせまい・すれ違いにくい</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="見通しが悪い"> <span>👀</span>見通しが悪い</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="スピードが速い"> <span>🚓</span>車のスピードが速い</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="信号や標識がない"> <span>🚦</span>信号・標識がわかりづらい／ない</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="子ども高齢者多い"> <span>👵</span>子ども・高齢者がよく通る</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="駐車車両多い"> <span>🚙</span>駐車・停車の車が多い</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="飛び出しが多い"> <span>🏃‍♂️</span>飛び出しが多い</label><br />
-      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="その他"> <span>❓</span>その他</label>
-    </div>
+  <button onclick="submitForm()">送信してマップに追加</button>
 
-    <div class="form-group">
-      <label>気になったこと・補足したいこと（任意）：</label><br />
-      <textarea name="entry.555555555" rows="3" cols="40"></textarea>
-    </div>
-
-    <input type="hidden" name="entry.111111111" id="lat">
-    <input type="hidden" name="entry.222222222" id="lng">
-
-    <button type="submit">送信</button>
-  </form>
-
-  <iframe name="hidden_iframe" style="display:none;"></iframe>
-
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    const markers = [];
+    const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse";
+    const entryIDs = {
+      lat: "entry.1834239742",
+      lng: "entry.2074381954",
+      perspective: "entry.1383826722",
+      comment: "entry.547473165"
+    };
 
-    function jumpTo(lat, lng) {
-      map.setView([lat, lng], 16);
-    }
-
-    function searchAddress() {
-      const query = document.getElementById("addressInput").value;
-      if (!query) return alert("住所を入力してください");
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.length > 0) {
-            const result = data[0];
-            map.setView([result.lat, result.lon], 16);
-          } else {
-            alert("住所が見つかりませんでした");
-          }
-        });
-    }
-
-    document.querySelectorAll(".genre-filter").forEach(cb => {
-      cb.addEventListener("change", () => {
-        markers.forEach(m => {
-          if (document.querySelector(`.genre-filter[value='${m.genre}']`).checked) {
-            m.marker.addTo(map);
-          } else {
-            map.removeLayer(m.marker);
-          }
-        });
-      });
-    });
+    let tempMarker = null;
+    let allMarkers = [];
 
     map.on('click', function(e) {
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-      const genre = document.getElementById("genre")?.value || "未選択";
-
-      let markerColor = 'blue';
-      if (genre.includes("自動車")) markerColor = 'red';
-      else if (genre.includes("自転車")) markerColor = 'green';
-
-      const marker = L.circleMarker([lat, lng], {
-        radius: 8,
-        fillColor: markerColor,
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      }).addTo(map);
-
-      marker.bindPopup("ジャンル: " + genre);
-
-      markers.push({ genre, marker });
-
-      document.getElementById("lat")?.value = lat;
-      document.getElementById("lng")?.value = lng;
+      const { lat, lng } = e.latlng;
+      if (tempMarker) map.removeLayer(tempMarker);
+      tempMarker = L.marker([lat, lng]).addTo(map);
+      tempMarker.lat = lat;
+      tempMarker.lng = lng;
     });
 
     function submitForm() {
-      alert("投稿が送信されました！地図を更新するにはリロードしてください。");
+      if (!tempMarker) {
+        alert("地図をタップして場所を選んでください");
+        return;
+      }
+
+      const perspective = document.getElementById("perspective").value;
+      const comment = document.getElementById("comment").value.trim();
+      if (!comment) {
+        alert("内容を入力してください");
+        return;
+      }
+
+      const lat = tempMarker.lat;
+      const lng = tempMarker.lng;
+
+      const formData = new FormData();
+      formData.append(entryIDs.lat, lat);
+      formData.append(entryIDs.lng, lng);
+      formData.append(entryIDs.perspective, perspective);
+      formData.append(entryIDs.comment, comment);
+
+      fetch(formURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      }).then(() => {
+        const m = L.marker([lat, lng]).addTo(map);
+        m.bindPopup(`<b>${perspective}</b><br>${comment}`);
+        m.perspective = perspective;
+        allMarkers.push(m);
+        updateMarkers();
+
+        document.getElementById("comment").value = "";
+        map.removeLayer(tempMarker);
+        tempMarker = null;
+
+        alert("ありがとうございました！投稿が完了しました。");
+      });
     }
 
-    window.addEventListener("load", function () {
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 300);
-    });
+    function updateMarkers() {
+      const checked = Array.from(document.querySelectorAll(".filter-group input:checked")).map(i => i.value);
+      allMarkers.forEach(m => {
+        if (checked.includes(m.perspective)) {
+          m.addTo(map);
+        } else {
+          map.removeLayer(m);
+        }
+      });
+    }
+
+    function jumpTo(lat, lng) {
+      map.setView([lat, lng], 15);
+    }
   </script>
 </body>
 </html>

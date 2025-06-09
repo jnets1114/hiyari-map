@@ -84,15 +84,7 @@
     <button onclick="searchAddress()">検索</button>
   </div>
 
-  <img src="旧豊岡市地図.jpg" alt="地域マップ" usemap="#regionmap" class="region-image">
-  <map name="regionmap">
-    <area shape="rect" coords="300,70,400,160" alt="城崎" onclick="jumpTo(35.626825, 134.813262)">
-    <area shape="rect" coords="100,120,200,200" alt="竹野" onclick="jumpTo(35.648858, 134.733097)">
-    <area shape="rect" coords="120,250,220,320" alt="日高" onclick="jumpTo(35.575184, 134.798100)">
-    <area shape="rect" coords="300,200,400,300" alt="出石" onclick="jumpTo(35.506292, 134.873938)">
-    <area shape="rect" coords="420,220,520,320" alt="但東" onclick="jumpTo(35.447962, 134.959991)">
-    <area shape="rect" coords="230,150,310,230" alt="豊岡" onclick="jumpTo(35.545495, 134.820144)">
-  </map>
+  <div id="map"></div>
 
   <div class="filter-controls">
     表示するジャンル：
@@ -136,8 +128,6 @@
 
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-  
-
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -165,7 +155,6 @@
         });
     }
 
-    // フィルター処理（簡易）
     document.querySelectorAll(".genre-filter").forEach(cb => {
       cb.addEventListener("change", () => {
         markers.forEach(m => {
@@ -178,7 +167,6 @@
       });
     });
 
-    // 投稿用マーカー
     map.on('click', function(e) {
       const lat = e.latlng.lat;
       const lng = e.latlng.lng;
@@ -201,15 +189,13 @@
 
       markers.push({ genre, marker });
 
-      });
+      document.getElementById("lat")?.value = lat;
+      document.getElementById("lng")?.value = lng;
+    });
 
     function submitForm() {
       alert("投稿が送信されました！地図を更新するにはリロードしてください。");
     }
-
-      document.getElementById("lat")?.value = lat;
-      document.getElementById("lng")?.value = lng;
-    });
   </script>
 </body>
 </html>

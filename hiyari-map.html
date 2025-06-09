@@ -136,14 +136,7 @@
 
   <iframe name="hidden_iframe" style="display:none;"></iframe>
 
-  <div id="map"></div>
-
-  <!-- 地図サイズ初期化 -->
-  <script>
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 300);
-  </script>
+  
 
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
@@ -208,9 +201,7 @@
 
       markers.push({ genre, marker });
 
-      document.getElementById("lat")?.value = lat;
-      document.getElementById("lng")?.value = lng;
-    });
+      });
 
     function submitForm() {
       alert("投稿が送信されました！地図を更新するにはリロードしてください。");

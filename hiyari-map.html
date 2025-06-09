@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ヒヤリハット投稿マップ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">  setTimeout(() => {
+    map.invalidateSize();
+  }, 500);
+</script>
   <style>
     body {
       font-family: sans-serif;
@@ -84,7 +87,7 @@
     <button onclick="searchAddress()">検索</button>
   </div>
 
-  <div id="map"></div>
+  <div id="map" style="height: 300px; min-height: 300px;"></div>
 
   <div class="filter-controls">
     表示するジャンル：

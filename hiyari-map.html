@@ -41,10 +41,10 @@
     button:hover {
       background-color: #91b087;
     }
-    .filter-group, .area-buttons {
+    .filter-group {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      justify-content: space-between;
       margin-bottom: 12px;
     }
     .filter-group label {
@@ -53,6 +53,14 @@
       gap: 6px;
       font-size: 1em;
       color: #5c4438;
+      min-width: 90px;
+      white-space: nowrap;
+    }
+    .area-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
     }
     .area-buttons button {
       flex: 1 1 30%;

@@ -2,71 +2,48 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ヒヤリハット統合マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ヒヤリハット投稿マップ</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     body {
-      font-family: "Noto Sans JP", sans-serif;
-      background-color: #fdf6e3;
-      padding: 12px;
-      color: #444;
+      font-family: sans-serif;
+      background-color: #fefefe;
+      padding: 10px;
     }
     h1 {
-      font-size: 1.6em;
-      margin-bottom: 10px;
-      color: #5c4438;
+      font-size: 1.4em;
+      color: #333;
     }
     #map {
       height: 300px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      border: 2px solid #e8d9b6;
-    }
-    .area-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .area-buttons button {
-      flex: 1 1 30%;
-      font-size: 0.95em;
-      background-color: #e8d9b6;
-      color: #5c4438;
-      border: none;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .area-buttons button:hover {
-      background-color: #d9c89a;
-    }
-    .search-box {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 8px;
-      font-size: 1em;
-      border-radius: 6px;
       border: 1px solid #ccc;
+      margin-bottom: 10px;
     }
-    .search-box button {
-      background-color: #a4c49a;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
-      border: none;
+    .area-buttons, .form-section {
+      margin-bottom: 10px;
+    }
+    button {
+      margin: 2px;
+      padding: 6px 10px;
+    }
+    label {
+      display: inline-block;
+      margin: 4px;
+    }
+    .checkbox-icon {
+      font-size: 1.2em;
+      margin-right: 4px;
+    }
+    .form-group {
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
   <h1>ヒヤリハット投稿マップ</h1>
 
-  <!-- 地域ジャンプボタン -->
   <div class="area-buttons">
     <button onclick="jumpTo(35.545495, 134.820144)">旧豊岡市</button>
     <button onclick="jumpTo(35.626825, 134.813262)">城崎</button>
@@ -76,14 +53,47 @@
     <button onclick="jumpTo(35.447962, 134.959991)">但東</button>
   </div>
 
-  <!-- 住所入力でジャンプ -->
-  <div class="search-box">
-    <input type="text" id="addressInput" placeholder="例：豊岡市役所 など">
-    <button onclick="searchAddress()">住所で移動</button>
+  <div>
+    <input type="text" id="addressInput" placeholder="住所を入力" />
+    <button onclick="searchAddress()">検索</button>
   </div>
 
-  <!-- 地図本体 -->
   <div id="map"></div>
+
+  <form action="https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse" method="POST" target="hidden_iframe" onsubmit="submitForm()">
+    <div class="form-group">
+      <label>ジャンル：</label>
+      <select name="entry.123456789" id="genre">
+        <option value="自動車走行時">🚗 自動車走行時</option>
+        <option value="歩行時">🚶 歩行時</option>
+        <option value="自転車運転時">🚲 自転車運転時</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>危険パターン（複数選択可）：</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="道がせまい"> 🛣️ 道がせまい・すれ違いにくい</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="見通しが悪い"> 👀 見通しが悪い</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="スピードが速い"> 🚓 スピードが速い</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="信号や標識がない"> 🚦 信号・標識がわかりづらい／ない</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="子ども高齢者多い"> 👵 子ども・高齢者がよく通る</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="駐車車両多い"> 🚙 駐車・停車の車が多い</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="飛び出しが多い"> 🏃‍♂️ 飛び出しが多い</label><br />
+      <label><input type="checkbox" name="entry.987654321" value="その他"> ❓ その他</label>
+    </div>
+
+    <div class="form-group">
+      <label>自由記述（任意）：</label><br />
+      <textarea name="entry.555555555" rows="3" cols="40"></textarea>
+    </div>
+
+    <input type="hidden" name="entry.111111111" id="lat">
+    <input type="hidden" name="entry.222222222" id="lng">
+
+    <button type="submit">送信</button>
+  </form>
+
+  <iframe name="hidden_iframe" style="display:none;"></iframe>
 
   <script>
     const map = L.map('map').setView([35.545495, 134.820144], 14);
@@ -99,16 +109,30 @@
       const query = document.getElementById("addressInput").value;
       if (!query) return alert("住所を入力してください");
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-          if (data && data.length > 0) {
+          if (data.length > 0) {
             const result = data[0];
             map.setView([result.lat, result.lon], 16);
           } else {
             alert("住所が見つかりませんでした");
           }
-        })
-        .catch(() => alert("検索中にエラーが発生しました"));
+        });
+    }
+
+    let selectedLat = 35.545495;
+    let selectedLng = 134.820144;
+
+    map.on('click', function(e) {
+      selectedLat = e.latlng.lat;
+      selectedLng = e.latlng.lng;
+      document.getElementById("lat").value = selectedLat;
+      document.getElementById("lng").value = selectedLng;
+      L.marker([selectedLat, selectedLng]).addTo(map);
+    });
+
+    function submitForm() {
+      alert("投稿が送信されました！地図を更新するにはリロードしてください。");
     }
   </script>
 </body>

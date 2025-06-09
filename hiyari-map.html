@@ -23,7 +23,7 @@
       border-radius: 12px;
       border: 2px solid #e8d9b6;
     }
-    button, select, textarea, input[type="text"], input[type="email"], input[type="number"] {
+    button, select, textarea, input[type="text"] {
       width: 100%;
       font-size: 1em;
       margin-bottom: 10px;
@@ -98,12 +98,12 @@
   <h1>ヒヤリハット投稿マップ</h1>
 
   <div class="area-buttons">
-    <button onclick="jumpTo(35.545495, 134.820144)">旧豊岡市</button>
-    <button onclick="jumpTo(35.625621, 134.822757)">城崎</button>
-    <button onclick="jumpTo(35.648885, 134.733141)">竹野</button>
-    <button onclick="jumpTo(35.575210, 134.798122)">日高</button>
-    <button onclick="jumpTo(35.506269, 134.873964)">出石</button>
-    <button onclick="jumpTo(35.447947, 134.960010)">但東</button>
+    <button onclick="jumpTo(35.545345, 134.819852)">旧豊岡市</button>
+    <button onclick="jumpTo(35.629110, 134.821150)">城崎</button>
+    <button onclick="jumpTo(35.651517, 134.728400)">竹野</button>
+    <button onclick="jumpTo(35.573374, 134.797244)">日高</button>
+    <button onclick="jumpTo(35.506281, 134.874727)">出石</button>
+    <button onclick="jumpTo(35.446624, 134.958791)">但東</button>
   </div>
 
   <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -145,7 +145,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([35.545495, 134.820144], 14);
+    const map = L.map('map').setView([35.545345, 134.819852], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -158,7 +158,6 @@
       comment: "entry.547473165"
     };
 
-    // カラーピンの設定
     const iconCar = new L.Icon({
       iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',

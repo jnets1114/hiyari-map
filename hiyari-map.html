@@ -39,6 +39,24 @@
     .form-group {
       margin-bottom: 10px;
     }
+    .icon-label {
+      display: flex;
+      align-items: center;
+    }
+    .icon-label input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      margin-right: 6px;
+    }
+    .icon-label span {
+      font-size: 1.2em;
+      margin-right: 6px;
+    }
+    @media (max-width: 600px) {
+      .icon-label {
+        font-size: 0.9em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -72,14 +90,14 @@
 
     <div class="form-group">
       <label>危険パターン（複数選択可）：</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="道がせまい"> 🛣️ 道がせまい・すれ違いにくい</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="見通しが悪い"> 👀 見通しが悪い</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="スピードが速い"> 🚓 スピードが速い</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="信号や標識がない"> 🚦 信号・標識がわかりづらい／ない</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="子ども高齢者多い"> 👵 子ども・高齢者がよく通る</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="駐車車両多い"> 🚙 駐車・停車の車が多い</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="飛び出しが多い"> 🏃‍♂️ 飛び出しが多い</label><br />
-      <label><input type="checkbox" name="entry.987654321" value="その他"> ❓ その他</label>
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="道がせまい"> <span>🛣️</span>道がせまい・すれ違いにくい</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="見通しが悪い"> <span>👀</span>見通しが悪い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="スピードが速い"> <span>🚓</span>車のスピードが速い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="信号や標識がない"> <span>🚦</span>信号・標識がわかりづらい／ない</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="子ども高齢者多い"> <span>👵</span>子ども・高齢者がよく通る</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="駐車車両多い"> <span>🚙</span>駐車・停車の車が多い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="飛び出しが多い"> <span>🏃‍♂️</span>飛び出しが多い</label><br />
+      <label class="icon-label"><input type="checkbox" name="entry.987654321" value="その他"> <span>❓</span>その他</label>
     </div>
 
     <div class="form-group">
@@ -128,7 +146,22 @@
       selectedLng = e.latlng.lng;
       document.getElementById("lat").value = selectedLat;
       document.getElementById("lng").value = selectedLng;
-      L.marker([selectedLat, selectedLng]).addTo(map);
+
+      const genre = document.getElementById("genre").value;
+      let markerColor = 'blue';
+      if (genre.includes("自動車")) markerColor = 'red';
+      else if (genre.includes("自転車")) markerColor = 'green';
+
+      const marker = L.circleMarker([selectedLat, selectedLng], {
+        radius: 8,
+        fillColor: markerColor,
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+      }).addTo(map);
+
+      marker.bindPopup("ジャンル: " + genre).openPopup();
     });
 
     function submitForm() {

@@ -196,6 +196,12 @@
     function submitForm() {
       alert("投稿が送信されました！地図を更新するにはリロードしてください。");
     }
+
+    window.addEventListener("load", function () {
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 300);
+    });
   </script>
 </body>
 </html>

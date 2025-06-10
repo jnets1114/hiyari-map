@@ -143,7 +143,7 @@
 <label>補足（任意）</label>
 <textarea id="comment" rows="3" placeholder="例：夜は街灯が少ないです"></textarea>
 
-<button onclick="clearTempMarker()">マーカーをリセット</button>
+<button onclick="submitForm()">送信してマップに追加</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -172,17 +172,24 @@ function searchAddress() {
     });
 }
 
-let tempMarker;
-function clearTempMarker() {
-  if (tempMarker) {
-    map.removeLayer(tempMarker);
-    tempMarker = null;
+function submitForm() {
+  if (!window.lastClickedLatLng) {
+    alert("地図をクリックして場所を選んでください");
+    return;
   }
+
+  const perspective = document.getElementById("perspective").value;
+  const comment = document.getElementById("comment").value;
+  const dangers = Array.from(document.querySelectorAll("#danger-options input:checked")).map(e => e.value).join(", ");
+
+  const popupContent = `<b>${perspective}</b><br>${dangers}<br>${comment}`;
+  const marker = L.marker(window.lastClickedLatLng).addTo(map);
+  marker.bindPopup(popupContent).openPopup();
+  window.lastClickedLatLng = null;
 }
 
 map.on('click', function(e) {
-  clearTempMarker();
-  tempMarker = L.marker(e.latlng, {draggable: true}).addTo(map);
+  window.lastClickedLatLng = e.latlng;
 });
 </script>
 </body>

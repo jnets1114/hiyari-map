@@ -76,23 +76,27 @@
         return;
       }
 
-      const data = {
-        lat: selectedLatLng.lat,
-        lng: selectedLatLng.lng,
-        perspective: document.getElementById("perspective").value,
-        dangers: getSelectedDangers(),
-        comment: document.getElementById("comment").value
-      };
+      const params = new URLSearchParams();
+      params.append("lat", selectedLatLng.lat);
+      params.append("lng", selectedLatLng.lng);
+      params.append("perspective", document.getElementById("perspective").value);
+      params.append("dangers", getSelectedDangers());
+      params.append("comment", document.getElementById("comment").value);
 
-      fetch("https://script.google.com/macros/s/AKfycbyJctKjcNcmoUQnO6zp6EK9H2y8JahkROhaRBj5OkHero05uiwFxXwdJtuCkNcuSA3f/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbzM6n_bQj3luIpZj1e5BDQQEIIDEFBETwJpBge8od-s7C6gdqwbdARM-CWKvqp3mMTdnA/exec", {
         method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
+        body: params
       })
       .then(res => res.text())
       .then(text => {
         if (text === "OK") {
-          addPin(data);
+          addPin({
+            lat: selectedLatLng.lat,
+            lng: selectedLatLng.lng,
+            perspective: document.getElementById("perspective").value,
+            dangers: getSelectedDangers(),
+            comment: document.getElementById("comment").value
+          });
         } else {
           alert("送信失敗：" + text);
         }

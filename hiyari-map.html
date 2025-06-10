@@ -122,6 +122,31 @@
 
 <div id="map"></div>
 
+<!-- 投稿フォーム部分の再追加 -->
+<div>
+  <label for="perspective">ジャンル</label>
+  <select id="perspective">
+    <option value="自動車走行時">自動車走行時</option>
+    <option value="歩行時">歩行時</option>
+    <option value="自転車運転時">自転車運転時</option>
+  </select>
+
+  <label>危険内容（該当するものすべて）</label>
+  <div id="danger-options">
+    <label><input type="checkbox" name="danger" value="道が狭い・すれ違いにくい">道が狭い・すれ違いにくい</label><br>
+    <label><input type="checkbox" name="danger" value="見通しが悪い">見通しが悪い</label><br>
+    <label><input type="checkbox" name="danger" value="車のスピードが早い">車のスピードが早い</label><br>
+    <label><input type="checkbox" name="danger" value="信号・標識がわかりづらい">信号・標識がわかりづらい</label><br>
+    <label><input type="checkbox" name="danger" value="子ども・高齢者がよく通る">子ども・高齢者がよく通る</label><br>
+    <label><input type="checkbox" name="danger" value="駐車・停車の車が多い">駐車・停車の車が多い</label><br>
+  </div>
+
+  <label>補足（任意）</label>
+  <textarea id="comment" rows="3" placeholder="例：夜は街灯が少ないです"></textarea>
+
+  <button onclick="submitForm()">送信してマップに追加</button>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map = L.map('map').setView([35.545345, 134.819852], 14);

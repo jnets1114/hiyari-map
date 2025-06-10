@@ -86,15 +86,6 @@
       transform: scale(1);
       accent-color: #669966;
     }
-    select#perspective option[value="自動車走行時"]::before {
-      content: "🚗 ";
-    }
-    select#perspective option[value="歩行時"]::before {
-      content: "🚶 ";
-    }
-    select#perspective option[value="自転車運転時"]::before {
-      content: "🚴 ";
-    }
   </style>
 </head>
 <body>
@@ -155,38 +146,89 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-  const map = L.map('map').setView([35.545345, 134.819852], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+const map = L.map('map').setView([35.545345, 134.819852], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
-  const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse";
-  const entryIDs = {
-    lat: "entry.1834239742",
-    lng: "entry.2074381954",
-    perspective: "entry.1383826722",
-    danger: "entry.1744425585",
-    comment: "entry.547473165"
-  };
+const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfHjIeINesz3nkkbpF33n5JHkF7KlqRwtdBZ9Fc6aynEThRcQ/formResponse";
+const entryIDs = {
+  lat: "entry.1834239742",
+  lng: "entry.2074381954",
+  perspective: "entry.1383826722",
+  danger: "entry.1744425585",
+  comment: "entry.547473165"
+};
 
-  const iconCar = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+const iconCar = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
+const iconWalk = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
+const iconBike = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png', shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
+
+let tempMarker = null;
+let allMarkers = [];
+
+map.on('click', function(e) {
+  const { lat, lng } = e.latlng;
+  if (tempMarker) map.removeLayer(tempMarker);
+  const perspective = document.getElementById("perspective").value;
+  const icon = perspective === "自動車走行時" ? iconCar : (perspective === "歩行時" ? iconWalk : iconBike);
+  const checkedOptions = Array.from(document.querySelectorAll('input[name="danger"]:checked')).map(el => el.value);
+  const comment = document.getElementById("comment").value;
+  const popupContent = `<b>ジャンル:</b> ${perspective}<br><b>危険内容:</b> ${checkedOptions.join("、")}<br>${comment ? `<b>補足:</b> ${comment}` : ""}`;
+  tempMarker = L.marker([lat, lng], { icon }).addTo(map).bindPopup(popupContent).openPopup();
+  tempMarker.perspective = perspective;
+  allMarkers.push(tempMarker);
+});
+
+function submitForm() {
+  if (!tempMarker) {
+    alert("地図をタップして地点を指定してください！");
+    return;
+  }
+  const lat = tempMarker.getLatLng().lat;
+  const lng = tempMarker.getLatLng().lng;
+  const perspective = document.getElementById("perspective").value;
+  const dangers = Array.from(document.querySelectorAll('input[name="danger"]:checked')).map(el => el.value).join(", ");
+  const comment = document.getElementById("comment").value;
+  const form = new FormData();
+  form.append(entryIDs.lat, lat);
+  form.append(entryIDs.lng, lng);
+  form.append(entryIDs.perspective, perspective);
+  form.append(entryIDs.danger, dangers);
+  form.append(entryIDs.comment, comment);
+  fetch(formURL, { method: "POST", mode: "no-cors", body: form })
+    .then(() => alert("投稿が完了しました！"));
+}
+
+function jumpTo(lat, lng) {
+  map.setView([lat, lng], 15);
+}
+
+function updateMarkers() {
+  const checkedTypes = Array.from(document.querySelectorAll(".filter-group input[type='checkbox']:checked")).map(el => el.value);
+  allMarkers.forEach(marker => {
+    if (checkedTypes.includes(marker.perspective)) {
+      map.addLayer(marker);
+    } else {
+      map.removeLayer(marker);
+    }
   });
-  const iconWalk = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-  });
-  const iconBike = new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-  });
+}
 
-  let tempMarker = null;
-  let allMarkers = [];
-
-  map.on('click', function(e) {
-    const { lat, lng } = e.latlng
+function searchAddress() {
+  const query = document.getElementById("addressInput").value;
+  if (!query) return;
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        map.setView([parseFloat(lat), parseFloat(lon)], 16);
+      } else {
+        alert("住所が見つかりませんでした。");
+      }
+    });
+}
+</script>
+</body>
+</html>

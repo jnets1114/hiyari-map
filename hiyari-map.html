@@ -152,6 +152,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
+let markers = [];
+
 function jumpTo(lat, lng) {
   map.setView([lat, lng], 15);
 }
@@ -184,7 +186,8 @@ function submitForm() {
 
   const popupContent = `<b>${perspective}</b><br>${dangers}<br>${comment}`;
   const marker = L.marker(window.lastClickedLatLng).addTo(map);
-  marker.bindPopup(popupContent).openPopup();
+  marker.bindPopup(popupContent);
+  markers.push(marker);
   window.lastClickedLatLng = null;
 }
 

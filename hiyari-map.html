@@ -6,18 +6,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    #map { height: 400px; width: 100%; }
-    body { font-family: sans-serif; margin: 10px; }
-    label, select, textarea, button { display: block; margin: 8px 0; }
-    .region-buttons button { margin-right: 5px; }
+    body {
+      background-color: #fdf6e3;
+      font-family: sans-serif;
+      font-size: 1.2em;
+      margin: 10px;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #5b432b;
+    }
+    #map {
+      height: 400px;
+      width: 100%;
+      margin: 1em 0;
+    }
+    .button-row, .genre-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 1em;
+    }
+    .button-row button, .genre-row label {
+      background-color: #e6d3a8;
+      border: none;
+      padding: 10px 16px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .genre-row input[type="radio"] {
+      margin-right: 8px;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1em;
+      font-size: 1em;
+    }
+    .submit-row button {
+      background-color: #a8cfa4;
+      color: white;
+      font-size: 1.1em;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      width: 100%;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h2>ヒヤリハット投稿マップ</h2>
 
-  <div id="map"></div>
-
-  <div class="region-buttons">
+  <div class="button-row">
     <button onclick="jumpTo('旧豊岡市')">旧豊岡市</button>
     <button onclick="jumpTo('城崎')">城崎</button>
     <button onclick="jumpTo('竹野')">竹野</button>
@@ -26,148 +70,114 @@
     <button onclick="jumpTo('但東')">但東</button>
   </div>
 
-  <input type="text" id="addressInput" placeholder="豊岡市○○" />
+  <input type="text" id="addressInput" placeholder="例：豊岡市日高町江原" />
   <button onclick="searchAddress()">検索</button>
 
-  <label>ジャンル（1つ選択）</label>
-  <select id="perspective">
-    <option>自動車走行時</option>
-    <option>歩行時</option>
-    <option>自転車運転時</option>
-  </select>
+  <div class="genre-row">
+    <label><input type="radio" name="perspective" value="自動車走行時" checked />🚗 自動車</label>
+    <label><input type="radio" name="perspective" value="歩行時" />🚶‍♂️ 歩行</label>
+    <label><input type="radio" name="perspective" value="自転車運転時" />🚴‍♀️ 自転車</label>
+  </div>
 
-  <label>危険内容（複数選択）</label>
-  <label><input type="checkbox" value="道が狭い・すれ違いにくい" />道が狭い</label>
-  <label><input type="checkbox" value="見通しが悪い" />見通しが悪い</label>
-  <label><input type="checkbox" value="車のスピードが早い" />スピードが早い</label>
-  <label><input type="checkbox" value="信号・標識がわかりづらい／ない" />信号・標識なし</label>
-  <label><input type="checkbox" value="子ども・高齢者がよく通る" />子ども・高齢者が通る</label>
-  <label><input type="checkbox" value="駐車・停車の車が多い" />駐車・停車が多い</label>
+  <div id="map"></div>
 
-  <label>補足コメント（任意）</label>
-  <textarea id="comment" rows="3"></textarea>
+  <label>危険内容（複数選択）</label><br>
+  <label><input type="checkbox" value="道が狭い・すれ違いにくい" />道が狭い・すれ違いにくい</label><br>
+  <label><input type="checkbox" value="見通しが悪い" />見通しが悪い</label><br>
+  <label><input type="checkbox" value="車のスピードが早い" />車のスピードが早い</label><br>
+  <label><input type="checkbox" value="信号・標識がわかりづらい／ない" />信号・標識がわかりづらい／ない</label><br>
+  <label><input type="checkbox" value="子ども・高齢者がよく通る" />子ども・高齢者がよく通る</label><br>
+  <label><input type="checkbox" value="駐車・停車の車が多い" />駐車・停車の車が多い</label><br>
 
-  <button onclick="submitPin()">送信してマップに追加</button>
-  <button onclick="clearPins()">ピンをすべて消す</button>
+  <label>補足（任意）</label>
+  <textarea id="comment" placeholder="例：夜は街灯が少ないです"></textarea>
+
+  <div class="submit-row">
+    <button onclick="submitPin()">送信してマップに追加</button>
+    <button onclick="clearPins()">ピンをすべて消す</button>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([35.544444, 134.826667], 13);
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzM6n_bQj3luIpZj1e5BDQQEIIDEFBETwJpBge8od-s7C6gdqwbdARM-CWKvqp3mMTdnA/exec";
+    const map = L.map('map').setView([35.544444, 134.826667], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: 'Map data © OpenStreetMap contributors'
     }).addTo(map);
 
     let selectedLatLng = null;
-    let userPins = [];
+    let markers = [];
 
-    map.on('click', function (e) {
+    map.on('click', function(e) {
       selectedLatLng = e.latlng;
-      L.popup().setLatLng(e.latlng).setContent("ここに投稿します").openOn(map);
+      L.popup()
+        .setLatLng(e.latlng)
+        .setContent("ここに投稿します")
+        .openOn(map);
     });
 
-    function getSelectedDangers() {
-      return Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-        .map(cb => cb.value).join(", ");
-    }
-
     function submitPin() {
-      if (!selectedLatLng) {
-        alert("まず地図をクリックして場所を選んでください。");
-        return;
-      }
+      if (!selectedLatLng) return alert("地図をタップしてください");
 
-      const params = new URLSearchParams();
-      params.append("lat", selectedLatLng.lat);
-      params.append("lng", selectedLatLng.lng);
-      params.append("perspective", document.getElementById("perspective").value);
-      params.append("dangers", getSelectedDangers());
-      params.append("comment", document.getElementById("comment").value);
+      const perspective = document.querySelector('input[name="perspective"]:checked').value;
+      const dangers = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value).join(', ');
+      const comment = document.getElementById("comment").value;
 
-      fetch("https://script.google.com/macros/s/AKfycbzM6n_bQj3luIpZj1e5BDQQEIIDEFBETwJpBge8od-s7C6gdqwbdARM-CWKvqp3mMTdnA/exec", {
+      const payload = {
+        lat: selectedLatLng.lat,
+        lng: selectedLatLng.lng,
+        perspective,
+        dangers,
+        comment
+      };
+
+      fetch(GAS_URL, {
         method: "POST",
-        body: params
-      })
-      .then(res => res.text())
-      .then(text => {
-        if (text === "OK") {
-          addPin({
-            lat: selectedLatLng.lat,
-            lng: selectedLatLng.lng,
-            perspective: document.getElementById("perspective").value,
-            dangers: getSelectedDangers(),
-            comment: document.getElementById("comment").value
-          });
+        body: JSON.stringify(payload)
+      }).then(res => res.text()).then(text => {
+        if (text.includes("OK")) {
+          const marker = L.marker(selectedLatLng).addTo(map).bindPopup(
+            `${perspective}<br>${dangers}<br>${comment}`
+          );
+          markers.push(marker);
+          alert("送信しました！");
         } else {
-          alert("送信失敗：" + text);
+          alert("送信失敗: " + text);
         }
-      })
-      .catch(err => {
-        alert("送信エラー: " + err.message);
       });
     }
 
-    function addPin(data) {
-      const color = {
-        "自動車走行時": "red",
-        "歩行時": "blue",
-        "自転車運転時": "green"
-      }[data.perspective] || "gray";
-
-      const marker = L.marker([data.lat, data.lng], {
-        icon: L.icon({
-          iconUrl: `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`,
-          iconSize: [32, 32]
-        })
-      }).addTo(map);
-
-      marker.bindPopup(`<b>${data.perspective}</b><br>${data.dangers}<br>${data.comment || ""}`);
-      userPins.push(marker);
-
-      const stored = JSON.parse(localStorage.getItem("userPins") || "[]");
-      stored.push(data);
-      localStorage.setItem("userPins", JSON.stringify(stored));
-    }
-
     function clearPins() {
-      if (confirm("すべてのピンを削除しますか？")) {
-        userPins.forEach(m => map.removeLayer(m));
-        userPins = [];
-        localStorage.removeItem("userPins");
-      }
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
     }
 
     function jumpTo(area) {
-      const places = {
-        "旧豊岡市": [35.544444, 134.826667],
-        "城崎": [35.6237, 134.8191],
-        "竹野": [35.6201, 134.7045],
-        "日高": [35.5488, 134.8885],
-        "出石": [35.4435, 134.8793],
-        "但東": [35.3572, 134.9623]
+      const areas = {
+        '旧豊岡市': [35.544444, 134.826667],
+        '城崎': [35.630833, 134.818611],
+        '竹野': [35.685833, 134.714722],
+        '日高': [35.503611, 134.824444],
+        '出石': [35.423889, 134.873889],
+        '但東': [35.383056, 134.984722]
       };
-      const coords = places[area];
-      if (coords) map.setView(coords, 14);
+      if (areas[area]) map.setView(areas[area], 15);
     }
 
     function searchAddress() {
-      const query = document.getElementById("addressInput").value + " 豊岡市";
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+      const address = document.getElementById("addressInput").value;
+      if (!address) return;
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
         .then(res => res.json())
         .then(data => {
-          if (data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lon = parseFloat(data[0].lon);
-            map.setView([lat, lon], 16);
+          if (data && data.length > 0) {
+            const latlng = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+            map.setView(latlng, 15);
           } else {
-            alert("住所が見つかりませんでした。");
+            alert("場所が見つかりませんでした");
           }
         });
     }
-
-    window.onload = () => {
-      const saved = JSON.parse(localStorage.getItem("userPins") || "[]");
-      saved.forEach(addPin);
-    };
   </script>
 </body>
 </html>

@@ -153,6 +153,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let tempMarker = null;
+let allMarkers = [];
 
 function jumpTo(lat, lng) {
   map.setView([lat, lng], 15);
@@ -174,6 +175,25 @@ function searchAddress() {
     });
 }
 
+function loadMarkersFromLocalStorage() {
+  const saved = localStorage.getItem('markers');
+  if (!saved) return;
+  const markerData = JSON.parse(saved);
+  markerData.forEach(data => {
+    const marker = L.marker(data.latlng).addTo(map);
+    marker.bindPopup(data.popup);
+    allMarkers.push(marker);
+  });
+}
+
+function saveMarkersToLocalStorage() {
+  const data = allMarkers.map(marker => ({
+    latlng: marker.getLatLng(),
+    popup: marker.getPopup().getContent()
+  }));
+  localStorage.setItem('markers', JSON.stringify(data));
+}
+
 function submitForm() {
   if (!window.lastClickedLatLng) {
     alert("地図をクリックして場所を選んでください");
@@ -187,7 +207,25 @@ function submitForm() {
   const popupContent = `<b>${perspective}</b><br>${dangers}<br>${comment}`;
   const marker = L.marker(window.lastClickedLatLng).addTo(map);
   marker.bindPopup(popupContent);
+  allMarkers.push(marker);
+  saveMarkersToLocalStorage();
   window.lastClickedLatLng = null;
+
+  // Google Apps Script連携
+  fetch("https://script.google.com/macros/s/AKfycbyQp0tDQTHAY559Mma2Z1biTPGssYBS5P5g5kQ4gk_z3usKbNN_yJSFKubz6sSrK9XfYg/exec", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      lat: marker.getLatLng().lat,
+      lng: marker.getLatLng().lng,
+      perspective,
+      dangers,
+      comment
+    })
+  });
 }
 
 map.on('click', function(e) {
@@ -197,6 +235,8 @@ map.on('click', function(e) {
   }
   tempMarker = L.marker(e.latlng).addTo(map);
 });
+
+window.onload = loadMarkersFromLocalStorage;
 </script>
 </body>
 </html>

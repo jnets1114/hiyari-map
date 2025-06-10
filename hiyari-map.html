@@ -122,7 +122,7 @@
 
 <div id="map"></div>
 
-<!-- 以下は送信フォーム部分 -->
+<!-- 送信フォーム等のUIの続き -->
 <label>ジャンル</label>
 <select id="perspective">
   <option value="自動車走行時">自動車走行時</option>
@@ -147,7 +147,30 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// JavaScript の初期化などはそのままで OK
+const map = L.map('map').setView([35.545345, 134.819852], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+function jumpTo(lat, lng) {
+  map.setView([lat, lng], 15);
+}
+
+function searchAddress() {
+  const address = document.getElementById("addressInput").value;
+  if (!address) return;
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        map.setView([lat, lon], 16);
+      } else {
+        alert("住所が見つかりませんでした");
+      }
+    });
+}
 </script>
 </body>
 </html>

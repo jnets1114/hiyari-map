@@ -40,7 +40,7 @@
     .genre-row input[type="radio"] {
       margin-right: 8px;
     }
-    textarea, input[type="text"] {
+    textarea, input[type="text"], select {
       width: 100%;
       padding: 10px;
       margin-bottom: 1em;
@@ -92,6 +92,14 @@
 
   <div id="map"></div>
 
+  <!-- ▼ 追加：危険を感じた状況 -->
+  <label for="situationSelect">どういう状況で危険を感じましたか？</label><br>
+  <select id="situationSelect">
+    <option value="自動車運転時">🚗 自動車運転時</option>
+    <option value="歩行時">🚶‍♀️ 歩行時</option>
+    <option value="自転車運転時">🚲️ 自転車運転時</option>
+  </select>
+
   <label>危険内容（複数選択）</label><br>
   <label><input type="checkbox" value="道が狭い・すれ違いにくい" />道が狭い・すれ違いにくい</label><br>
   <label><input type="checkbox" value="見通しが悪い" />見通しが悪い</label><br>
@@ -127,6 +135,7 @@
     function submitPin() {
       if (!selectedLatLng) return alert("地図をタップしてください");
 
+      const situation = document.getElementById("situationSelect").value;
       const perspective = document.querySelector('input[name="perspective"]:checked').value;
       const dangers = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value).join(', ');
       const comment = document.getElementById("comment").value;
@@ -134,6 +143,7 @@
       const payload = {
         lat: selectedLatLng.lat,
         lng: selectedLatLng.lng,
+        situation,
         perspective,
         dangers,
         comment
@@ -144,7 +154,9 @@
         body: JSON.stringify(payload)
       }).then(res => res.text()).then(text => {
         if (text.includes("OK")) {
-          const marker = L.marker(selectedLatLng).addTo(map).bindPopup(`${perspective}<br>${dangers}<br>${comment}`);
+          const marker = L.marker(selectedLatLng).addTo(map).bindPopup(
+            `${situation}<br>${perspective}<br>${dangers}<br>${comment}`
+          );
           markers.push(marker);
           alert("送信しました！");
         } else {
